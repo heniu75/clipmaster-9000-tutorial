@@ -66,3 +66,69 @@ menubar.on('after-create-window', function () {
   menubar.window.loadURL(`file://${__dirname}/index.html`);
 });
 ```
+
+## Implementing The Renderer Functionality
+
+With menubar application up and running, it's time to shift our focus to the implementing the application's primary functionality.
+
+When a user clicks the "Copy from Clipboard" button, we want to read from the clipboard and add that new clipping to the list.
+
+We can make a few assumptions off the bat:
+
+1. We'll need access to Electron's `clipboard` module.
+1. We'll want a reference to the "Copy From Clipboard" button.
+1. We'll want a reference to the clippings list in order to add our clippings later on.
+
+Let's implement all three in one swift motion:
+
+```js
+const clipboard = electron.clipboard;
+
+const $clippingsList = $('.clippings-list');
+const $copyFromClipboardButton = $('#copy-from-clipboard');
+```
+
+Building the element that will display our clipping can be tedious. In the interest of time and focus, I've provided a function that will take some text and return a jQuery-wrapped DOM node that's ready to be appended to the clippings list.
+
+```js
+const createClippingElement = require('./support/create-clipping-element');
+```
+
+Spoiler alert: we'll eventually want to trigger reading from the clipboard by other means. So, let's keep break this functionality out into it's own function so that we can use it in multiple places.
+
+```js
+function addClippingToList() {
+  var text = clipboard.readText();
+  var $clipping = createClippingElement(text);
+  $clippingsList.append($clipping);
+}
+```
+
+Now, when a user clicks the "Copy from Clipboard" button, we'll read from the clipboard and add that clipping to the list.
+
+```js
+$copyFromClipboardButton.on('click', addClippingToList);
+```
+
+If all went well, our `renderer.js` looks something like this:
+
+```js
+const $ = require('jquery');
+const electron = require('electron');
+
+const clipboard = electron.clipboard;
+
+const $clippingsList = $('.clippings-list');
+const $copyFromClipboardButton = $('#copy-from-clipboard');
+const createClippingElement = require('./support/create-clipping-element');
+
+function addClippingToList() {
+  var text = clipboard.readText();
+  var $clipping = createClippingElement(text);
+  $clippingsList.append($clipping);
+}
+
+$copyFromClipboardButton.on('click', addClippingToList);
+```
+
+Let's fire up our application and take it for a spin.
