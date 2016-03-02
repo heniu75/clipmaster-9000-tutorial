@@ -132,3 +132,33 @@ $copyFromClipboardButton.on('click', addClippingToList);
 ```
 
 Let's fire up our application and take it for a spin.
+
+## Wiring Up Our Actions
+
+We have three buttons on each clipping element.
+
+1. "→ Clipboard" will write that clipping back to the clipboard.
+1. "Publish" will send it up to an API that we can share.
+1. "Remove" will remove it from the list.
+
+We'll take advantage of [event delegation][], in order to avoid memory leaks. _Disclaimer_, we'll do this in the quickest—not necessarily the best—possible way in order to get back to focusing on Electron concepts.
+
+[event delegation]: https://github.com/mdn/advanced-js-fundamentals-ck/blob/gh-pages/tutorials/04-events/05-event-delegation.md
+
+Let's implement event listeners for all three. We'll use dummy functionality for "copy" and "publish".
+
+```js
+$clippingsList.on('click', '.remove-clipping', function () {
+  $(this).parents('.clippings-list-item').remove();
+});
+
+$clippingsList.on('click', '.copy-clipping', function () {
+  var text = $(this).parents('.clippings-list-item').find('.clipping-text').text();
+  console.log('copy', text);
+});
+
+$clippingsList.on('click', '.publish-clipping', function () {
+  var text = $(this).parents('.clippings-list-item').find('.clipping-text').text();
+  console.log('publish', text);
+});
+```
