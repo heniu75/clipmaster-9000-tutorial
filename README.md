@@ -21,6 +21,48 @@ In a more robust application, you might break stuff into smaller files, but—fo
 
 ## Hello Menubar
 
-In this application, we're going to use [Max Ogden's excellent `menubar` module][menubar-repo]. This module abstracts some of the OS-specific implementation details of building a application that lives in the menu bar (OS X) or system tray (Windows).
+In this application, we're going to use [Max Ogden's excellent _menubar_ module][menubar-repo]. This module abstracts some of the OS-specific implementation details of building a application that lives in the menu bar (OS X) or system tray (Windows).
 
 [menubar-repo]: https://github.com/maxogden/menubar
+
+In `main.js`, we'll get things rolling by including Electron and menubar.
+
+```js
+const electron = require('electron');
+const Menubar = require('menubar');
+```
+
+ The `Menubar` is a constructor. We'll create an instance to work with.
+
+ ```js
+ const menubar = Menubar();
+ ```
+
+ In this case our `menubar` instance is very simular to `app` in [Fire Sale][]. We'll wait for the application to be fire a `ready` event and then we'll log to the console.
+
+ [Fire Sale]: https://github.com/stevekinney/firesale-tutorial
+
+```js
+menubar.on('ready', function () {
+  console.log('Application is ready.');
+});
+```
+
+Let's use `npm start` to verify that it works correctly. The library gives us a pleasant little cat icon as a default.
+
+![Cat icon in the menu bar on OS X](images/01-cat-in-menubar.png)
+
+We also get a window correctly positioned above or below—depending on your operating system—the icon, which will load a blank page for starters. This is an instance of `BrowserWindow` as we saw before in [Fire Sale][].
+
+
+![A correctly placed window appears when we click on the cat](images/02-open-window.gif)
+
+### Loading Our HTML File
+
+As we alluded to just a sentence or two ago, Menubar will create a `BrowserWindow` on our behalf. When it has done so, it will fire a `after-create-window` event. We can listen for this event and load our HTML page accordingly.
+
+```js
+menubar.on('after-create-window', function () {
+  menubar.window.loadURL(`file://${__dirname}/index.html`);
+});
+```
