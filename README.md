@@ -154,11 +154,26 @@ $clippingsList.on('click', '.remove-clipping', function () {
 
 $clippingsList.on('click', '.copy-clipping', function () {
   var text = $(this).parents('.clippings-list-item').find('.clipping-text').text();
-  console.log('copy', text);
+  console.log('COPY', text);
 });
 
 $clippingsList.on('click', '.publish-clipping', function () {
   var text = $(this).parents('.clippings-list-item').find('.clipping-text').text();
-  console.log('publish', text);
+  console.log('PUBLISH', text);
+});
+```
+
+Let's head back over to our application to verify that everything works. You can fire open developer tools using <kbd>Command-Option-I</kbd> or <kbd>Control-Option-I</kbd> for OS X and Windows respectively. I like to break them out to their own window.
+
+![Break out the developer tools](images/03-breakout-developer-tools.png)
+
+## Writing Text to the Clipboard.
+
+In the previous code we just wrote, we were just logging the clipping's contents to the console. Let's write it to the clipboard instead.
+
+```js
+$clippingsList.on('click', '.copy-clipping', function () {
+  var text = $(this).parents('.clippings-list-item').find('.clipping-text').text();
+  clipboard.writeText(text);
 });
 ```
