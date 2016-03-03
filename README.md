@@ -177,3 +177,180 @@ $clippingsList.on('click', '.copy-clipping', function () {
   clipboard.writeText(text);
 });
 ```
+
+## Publishing to a Gist
+
+Let's say we have a clipping that is super important. It's so important that we just want to share it with the world. Well, if it's that important than we'll probably want to get that publish button working.
+
+In a normal browser environment, we couldn't just send a AJAX request to some remote server at a different domain. The browser's security features won't allow that. Instead, we'd have to have send the request to our own server (maybe it's written in Node) and have our server send the HTTP request to the remote server. This is where Electron's privileged status as a Node application shines.
+
+We'll bring in the [Request][] library.
+
+[Request]: https://github.com/request/request
+
+```js
+const request = require('request');
+```
+
+Now, one of the most dense pieces of code we're going to write today will be the HTTP request. We'll be using [Github's Gist API][gistapi]. We'll need to set three important pieces of information:
+
+[gistApi]: https://developer.github.com/v3/gists/
+
+1. The URL of the Gist API
+1. A User-Agent (the Gist API requires this)
+1. A body with the text we'd like to use formatted in a particular way
+
+Our data will look as follows:
+
+```js
+{
+  url: 'https://api.github.com/gists',
+  headers: {
+    'User-Agent': 'Clipmaster 9000'
+  },
+  body: JSON.stringify({
+    description: "Created with Clipmaster 9000",
+    public: "true",
+    files:{
+      "clipping.txt": {
+        content: text
+      }
+    }
+  }
+})
+```
+
+We'll send that information using `request.post`. Request takes a callback function that it will execute when it hears back from the server. The callback function will be handed three arguments: `error`, `response`, and `body`.
+
+We'll start by using alerts to notify the user of the success or failure of our API request. We'll also write the URL of the new gist to the clipboard if it was successful.
+
+```js
+$clippingsList.on('click', '.publish-clipping', function () {
+  var text = $(this).parents('.clippings-list-item').find('.clipping-text').text();
+  request.post({
+    url: 'https://api.github.com/gists',
+    headers: {
+      'User-Agent': 'Clipmaster 9000'
+    },
+    body: JSON.stringify({
+      description: "Created with Clipmaster 9000",
+      public: "true",
+      files:{
+        "clipping.txt": {
+          content: text
+        }
+      }
+    })
+  }, function (err, response, body) {
+    if (err) { return alert(JSON.parse(err).message); }
+
+    var gistUrl = JSON.parse(body).html_url;
+    alert(gistUrl);
+    clipboard.writeText(gistUrl);
+  });
+});
+```
+
+## Using Notifications
+
+**A Note About Notifications**: Notifications work out of the box on Windows 10 and OS X. In earlier versions of Windows, you'll have to take some additional steps. We're going to move forward assuming you're using either OS X or Windows 10, but you can totally check out [this documentation][notifs] for more details.
+
+[notifs]: http://electron.atom.io/docs/v0.36.8/tutorial/desktop-environment-integration/#notifications-windows-linux-os-x
+
+Here's a little snipped form the [documentation][notifs] demonstrating how to use notifications.
+
+```js
+var myNotification = new Notification('Title', {
+  body: 'Lorem Ipsum Dolor Sit Amet'
+});
+
+myNotification.onclick = function () {
+  console.log('Notification clicked')
+};
+```
+
+Let's replace our alerts with notifications. We'll be modifying the callback in the Request callback from just a few minutes ago:
+
+```js
+function (err, response, body) {
+  if (err) {
+    return new Notification('Error Publishing Your Clipping', {
+      body: JSON.parse(err).message
+    });
+  }
+
+  var gistUrl = JSON.parse(body).html_url;
+  var notification = new Notification('Your Clipping Has Been Published', {
+    body: `Click to open ${gistUrl} in your browser.`
+  });
+
+  notification.onclick = function () {
+    electron.shell.openExternal(gistUrl);
+  };
+
+  clipboard.writeText(gistUrl);
+})
+```
+
+## Adding Global Shortcuts
+
+Electron can register global shortcuts with the operating system. Let's take this for a spin in `main.js`.
+
+We'll start by creating a reference to Electron `globalShortcut` module.
+
+```js
+const globalShortcut = electron.globalShortcut;
+```
+
+When the `ready` event is fired, we'll register our shortcut.
+
+```js
+menubar.on('ready', function () {
+  console.log('Application is ready.');
+
+  var createClipping = globalShortcut.register('CommandOrControl+!', function () {
+    console.log('This will eventually trigger creating a new clipping.');
+  });
+
+  if (!createClipping) { console.log('Registration failed', 'createClipping'); }
+});
+```
+
+In our specific application, all of our clippings are managed by the renderer process. So, when the global shortcut is hit, we'll have to let the renderer process know.
+
+Let's modify the event listener to send a message to the renderer process.
+
+```js
+var createClipping = globalShortcut.register('CommandOrControl+!', function () {
+  menubar.window.webContents.send('create-new-clipping');
+});
+```
+
+In `renderer.js`, we'll listen for this message. First, we'll require the `ipcRenderer` module.
+
+```js
+const ipc = electron.ipcRenderer;
+```
+
+We'll then listen for an event on the `create-new-clipping` channel.
+
+```js
+ipc.on('create-new-clipping', function (event) {
+  addClippingToList();
+  new Notification('Clipping Added', {
+    body: `${clipboard.readText()}`
+  });
+});
+```
+
+We won't do this now, because it's more of the same. But could add additional shortcuts to our application as well.
+
+```js
+var copyClipping = globalShortcut.register('CmdOrCtrl+Alt+@', function () {
+  menubar.window.webContents.send('clipping-to-clipboard');
+});
+
+var publishClipping = globalShortcut.register('CmdOrCtrl+Alt+#', function () {
+  menubar.window.webContents.send('publish-clipping');
+});
+```
