@@ -5,7 +5,7 @@
   "main": "lib/main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-packager ./build 'Clipmaster 3000' --platform=all --arch=all --version=0.36.8"
+    "build": "electron-packager . 'Clipmaster 3000' --platform=all --arch=all --version=0.36.8"
   },
   "repository": {
     "type": "git",
