@@ -20,6 +20,21 @@ body, input {
   font: menu;
 }
 
+body > div {
+  height: 100%;
+  overflow: scroll;
+  -webkit-overflow-scrolling: touch;
+}
+
+.container {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow: auto;
+}
+
 textarea, input, div, button { outline: none; }
 
 .controls {
