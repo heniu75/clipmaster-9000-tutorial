@@ -5,7 +5,7 @@
   "main": "lib/main.js",
   "scripts": {
     "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "electron-packager ./build 'Clipmaster 3000' --platform=all --arch=all --version=0.36.8"
   },
   "repository": {
     "type": "git",
@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/stevekinney/clipmaster-9000-tutorial#readme",
   "devDependencies": {
+    "electron-packager": "^5.2.1",
     "electron-prebuilt": "^0.36.9"
   },
   "dependencies": {
