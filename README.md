@@ -302,14 +302,14 @@ We'll start by creating a reference to Electron `globalShortcut` module.
 const globalShortcut = electron.globalShortcut;
 ```
 
-When the `ready` event is fired, we'll register our shortcut.
+When the `after-create-window` event is fired, we'll register our shortcut.
 
 ```js
-menubar.on('ready', function () {
-  console.log('Application is ready.');
+menubar.on('after-create-window', function () {
+  menubar.window.loadURL(`file://${__dirname}/index.html`);
 
   var createClipping = globalShortcut.register('CommandOrControl+!', function () {
-    console.log('This will eventually trigger creating a new clipping.');
+    menubar.window.webContents.send('create-new-clipping');
   });
 
   if (!createClipping) { console.log('Registration failed', 'createClipping'); }
@@ -352,5 +352,15 @@ var copyClipping = globalShortcut.register('CmdOrCtrl+Alt+@', function () {
 
 var publishClipping = globalShortcut.register('CmdOrCtrl+Alt+#', function () {
   menubar.window.webContents.send('publish-clipping');
+});
+```
+
+### Unregistering Our Shortcuts
+
+When the application is ready to quit, we'll unregister our shortcuts.
+
+```js
+menubar.app.on('will-quit', function () {
+  globalShortcut.unregisterAll();
 });
 ```
