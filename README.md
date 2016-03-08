@@ -23,6 +23,10 @@ In a more robust application, you might break stuff into smaller files, but—fo
 
 In this application, we're going to use [Max Ogden's excellent _menubar_ module][menubar-repo]. This module abstracts some of the OS-specific implementation details of building a application that lives in the menu bar (OS X) or system tray (Windows).
 
+> **Note**: There are some issues right now with some versions of Linux and Electron’s `Tray` module—which is what we'll be leveraging in this tutorial. Installing _ libappindicator1_ may help. If you have a VM with OS X or Windows, that will work as well. If you can't get it working, don't worry! I set up a branch of the project called [`no-menubar`][no-menubar] that will allow you to follow along with a set up similar to Fire Sale.
+
+[no-menubar]: https://github.com/stevekinney/clipmaster-9000-tutorial/tree/no-menubar
+
 [menubar-repo]: https://github.com/maxogden/menubar
 
 In `main.js`, we'll get things rolling by including Electron and menubar.
